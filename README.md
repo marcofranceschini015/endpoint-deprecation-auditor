@@ -108,7 +108,9 @@ Based on collected evidence, the tool provides a recommendation:
 
 ## Configuration
 
-Configuration is provided via environment variables:
+Configuration is split into two parts:
+
+### Environment variables (`.env`)
 
 ```env
 # Jira
@@ -118,13 +120,20 @@ JIRA_TOKEN=your_jira_token
 
 # Graylog
 GRAYLOG_BASE_URL=https://graylog.example.com
-GRAYLOG_EMAIL=your.email@company.com
 GRAYLOG_TOKEN=your_graylog_token
 
 # Default project paths (optional)
 DEFAULT_PROJECTS_PATHS=/repo/service-a,/repo/service-b
 ```
 An example configuration file is available in .env.example.
+
+### MCP Configuration(mcp.json)
+
+The project uses an mcp.json file to define external MCP servers
+(Jira and Graylog).
+Credentials and URLs are resolved from environment variables.
+If required variables are missing or invalid, the corresponding
+integration is automatically skipped.
 
 ---
 
@@ -133,15 +142,20 @@ An example configuration file is available in .env.example.
 ### Graylog
 
 - Runtime analysis is currently implemented **only for Graylog**
+- Integration is defined in `mcp.json`
 - Queries are executed via an **internal Graylog MCP tool**
-- Valid credentials and an accessible Graylog instance are required
-- **TODO:** extend support to additional log aggregation tools (e.g. Loki, Datadog)
+- Requires `GRAYLOG_BASE_URL` and `GRAYLOG_TOKEN`
+- If configuration is missing, runtime analysis is skipped
+- **TODO:** extend support to additional log aggregation tools
+  (e.g. Loki, Datadog)
 
 ### Jira
 
 - Jira integration relies on the **`mcp-atlassian` tool**
-- The tool is executed via `uvx`
-- Jira is used only to post comments and/or attach reports to existing tickets
+- Executed via `uvx`
+- Configuration is defined in `mcp.json`
+- Requires `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_TOKEN`
+- If configuration is missing, Jira update is skipped
 
 ---
 
@@ -151,6 +165,7 @@ An example configuration file is available in .env.example.
 - Dynamically built endpoints may evade static scanning
 - Runtime analysis depends on log retention and indexing policies
 - Currently supports **Graylog only**
+- External integrations are skipped if configuration is missing
 
 ---
 
