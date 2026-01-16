@@ -19,10 +19,8 @@ class Settings(BaseSettings):
     graylog_base_url: Optional[str] = Field(None, env="GRAYLOG_BASE_URL")
     graylog_token: Optional[str] = Field(None, env="GRAYLOG_TOKEN")
 
-    # Project paths for scanning codebase
-    default_projects_paths: Optional[str] = Field(
-        None, env="DEFAULT_PROJECTS_PATHS"
-    )
+    # Project paths for scanning codebase (required)
+    default_projects_paths: str = Field(..., env="DEFAULT_PROJECTS_PATHS")
 
     class Config:
         env_file = ".env"

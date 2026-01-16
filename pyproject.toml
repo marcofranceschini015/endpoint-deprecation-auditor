@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "endpoint-deprecation-auditor"
+version = "0.1.0"
+description = "CLI tool to assess whether an API endpoint can be safely deprecated by correlating code usage and runtime log occurrences."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Marco Franceschini" }
+]
+keywords = ["cli", "audit", "deprecation", "graylog", "jira", "spring"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+
+dependencies = [
+  "click==8.0.3",
+  "pydantic==2.10.6",
+  "pydantic-settings==2.7.1",
+  "python-dotenv==1.0.1"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.3.5"
+]
+
+[project.scripts]
+endpoint-audit = "endpoint_auditor.cli:audit"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
