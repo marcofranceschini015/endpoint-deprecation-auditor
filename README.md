@@ -29,7 +29,7 @@ The goal is to provide objective evidence to confidently mark an endpoint as dep
 - Report generation:
   - JSON
   - Markdown
-  - Optional PDF
+  - PDF
 - Optional Jira ticket update with assessment results
 
 ---
@@ -45,29 +45,43 @@ The goal is to provide objective evidence to confidently mark an endpoint as dep
 
 ---
 
-## CLI Usage
+## Quickstart
 
-With Jira integration:
+### Prerequisites
+- Docker + Docker Compose
 
+### Setup
 ```bash
-endpoint-auditor audit \
+cp .env.example .env
+# edit .env with your values
+```
+
+## Run
+
+Run the command (Without JIRA integration)
+```bash
+docker compose run --rm endpoint-auditor \
+  python -m endpoint_auditor.cli \
   --endpoint "/v1/users/verify" \
-  --controller-path "/repo/service-a/src/main/java/.../UserController.java" \
-  --projects-paths "/repo/service-a,/repo/service-b,/repo/frontend" \
+  --controller-path "/app/service-a/src/main/java/.../UserController.java" \
   --days 30 \
+  --out-dir "/app/reports"
+```
+
+Run the command (With JIRA integration) 
+```bash
+docker compose run --rm endpoint-auditor \
+  python -m endpoint_auditor.cli \
+  --endpoint "/v1/users/verify" \
+  --controller-path "/app/service-a/src/main/java/.../UserController.java" \
+  --days 30 \
+  --out-dir "/app/reports" \
   --jira "TICKET-1234"
 ```
 
-Without Jira (local report output):
-
-```bash
-endpoint-auditor audit \
-  --endpoint "/v1/users/verify" \
-  --controller-path "/repo/service-a/.../UserController.java" \
-  --projects-paths "/repo" \
-  --days 14 \
-  --out-dir "./reports"
-```
+## Notes:
+- Project directories are taken from DEFAULT_PROJECTS_PATHS in .env
+- Reports written under /reports will be visible on your host via the volume mount
 
 ---
 

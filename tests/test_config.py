@@ -31,14 +31,16 @@ def test_graylog_configuration(mock_env):
 
 def test_missing_jira_configuration():
     """Test if Jira integration is disabled when missing required configuration."""
+    os.environ["DEFAULT_PROJECTS_PATHS"] = "/repo/test"
     os.environ.pop("JIRA_BASE_URL", None)
     os.environ.pop("JIRA_EMAIL", None)
     os.environ.pop("JIRA_TOKEN", None)
-    settings.__init__()  # Re-initialize settings to reflect changes
+    settings.__init__()
     assert is_jira_enabled() is False
 
 def test_missing_graylog_configuration():
     """Test if Graylog integration is disabled when missing required configuration."""
+    os.environ["DEFAULT_PROJECTS_PATHS"] = "/repo/test"
     os.environ.pop("GRAYLOG_BASE_URL", None)
     os.environ.pop("GRAYLOG_TOKEN", None)
     settings.__init__()
@@ -47,3 +49,16 @@ def test_missing_graylog_configuration():
 def test_default_projects_paths(mock_env):
     """Test if the default project paths are loaded from the environment correctly."""
     assert settings.default_projects_paths == "/repo/service-a,/repo/service-b"
+
+def test_missing_required_default_projects_paths():
+    """Test if Settings initialization fails when required field is missing."""
+    from pydantic import ValidationError
+
+    os.environ.pop("DEFAULT_PROJECTS_PATHS", None)
+
+    with pytest.raises(ValidationError) as exc_info:
+        from endpoint_auditor.config import Settings
+        Settings()
+
+    # Verify the error is about the missing required field
+    assert "default_projects_paths" in str(exc_info.value)
