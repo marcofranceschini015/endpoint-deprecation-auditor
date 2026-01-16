@@ -1,0 +1,17 @@
+services:
+  endpoint-auditor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ..:/app
+    container_name: deprecate-endpoint-auditor
+    environment:
+      - PYTHONPATH=/app/src
+      - JIRA_BASE_URL=${JIRA_BASE_URL}
+      - JIRA_EMAIL=${JIRA_EMAIL}
+      - JIRA_TOKEN=${JIRA_TOKEN}
+      - GRAYLOG_BASE_URL=${GRAYLOG_BASE_URL}
+      - GRAYLOG_TOKEN=${GRAYLOG_TOKEN}
+      - DEFAULT_PROJECTS_PATHS=${DEFAULT_PROJECTS_PATHS}
+    command: ["tail", "-f", "/dev/null"]
