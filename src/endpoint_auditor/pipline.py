@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List
 
 from endpoint_auditor.scanners.log_extractor import extract_log
@@ -7,8 +6,8 @@ from endpoint_auditor.scanners.spring_controller_scanner import find_endpoint_in
 from endpoint_auditor.scanners.usage_scanner import scan_code_usage
 from endpoint_auditor.reporters.base_reporter import generate_base_report
 from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage
-
 from endpoint_auditor.integrations.graylog_mcp import count_log_occurrences
+
 
 def run_pipeline(
     endpoint: str,

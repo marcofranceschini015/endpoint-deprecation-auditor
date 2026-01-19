@@ -1,5 +1,5 @@
 import click
-import os
+
 from config import settings, is_graylog_enabled, is_jira_enabled
 from endpoint_auditor.pipline import run_pipeline
 from reporters import md_reporter, json_reporter, pdf_reporter

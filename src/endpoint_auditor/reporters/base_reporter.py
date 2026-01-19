@@ -4,18 +4,26 @@ from datetime import datetime, timezone
 
 from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage, Recommendation
 
+
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
 
 def _generate_warnings(
     is_log_extracted: bool,
     is_runtime_analysis_enabled: bool
 ) -> List[str]:
+    """
+    Generate a list of warnings based on if the log analysis went fine or not.
+    """
+
     warnings: List[str] = []
     if not is_log_extracted:
         warnings.append("Problems while extracting logs: Skipping log analysis")
     if not is_runtime_analysis_enabled:
         warnings.append("Problems while connecting to log extractor: Skipping log analysis")
+    return warnings
+
 
 def generate_base_report(
     endpoint_info: EndpointInfo,
