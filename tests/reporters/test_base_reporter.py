@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch
 
 from endpoint_auditor.reporters.base_reporter import generate_base_report, _generate_warnings
-from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage
+from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage, HttpMethod
 
 
 @pytest.fixture
@@ -11,6 +11,7 @@ def mock_endpoint_info():
     return EndpointInfo(
         endpoint_path="/api/v1/users",
         controller_file="/repo/UserController.java",
+        http_method=HttpMethod.GET,
         handler_method="getUsers"
     )
 

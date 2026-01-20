@@ -1,18 +1,48 @@
 from dataclasses import dataclass
 from typing import Optional, List
+from enum import Enum
+
+
+class HttpMethod(str, Enum):
+    """HTTP methods enum that inherits from str for compatibility with Python 3.9+"""
+    GET = "GET"
+    HEAD = "HEAD"
+    POST = "POST"
+    PUT = "PUT"
+    DELETE = "DELETE"
+    CONNECT = "CONNECT"
+    OPTIONS = "OPTIONS"
+    TRACE = "TRACE"
+    PATCH = "PATCH"
+
+    @classmethod
+    def from_str(cls, value: str) -> "HttpMethod":
+        """
+        Convert a string to HttpMethod (case-insensitive).
+
+        Valid examples:
+        - "get", "GET", "Get"
+        - " post "
+        """
+        try:
+            return cls(value.strip().upper())
+        except ValueError as e:
+            raise ValueError(f"Invalid HTTP method: {value}") from e
 
 
 @dataclass(frozen=True)
 class EndpointInfo:
     """
     Contains all information about an endpoint
-    
+
     :var endpoint_path: Url related to the endpoint
     :var controller_file: Path to the rest controller
+    :var http_method: HTTP method of the endpoint
     :var handler_method: Method that handles this endoint response
     """
     endpoint_path: str
     controller_file: str
+    http_method: HttpMethod
     handler_method: Optional[str]
 
 
@@ -20,7 +50,7 @@ class EndpointInfo:
 class LogExtraction:
     """
     Contains all information related with the extraction of a log
-    
+
     :var log_template: Template extracted from the log
     :var extracted: True if it was succesfully extracted, false otherwise
     """
@@ -49,7 +79,7 @@ class RuntimeUsage:
 class CodeUsage:
     """
     Contains all information related with the analysis of the code usage
-    
+
     :var projects_paths: List of projects in which search
     :var matches_count: Count of matches
     :var files: Name of the files in which the match was found
@@ -63,7 +93,7 @@ class CodeUsage:
 class Recommendation:
     """
     Final recommendation about the endpoint deprecation
-    
+
     :var status: Status for the deprecation
     :var rationale: Motivation related with the status
     """

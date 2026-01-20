@@ -12,6 +12,11 @@ from reporters import md_reporter, json_reporter, pdf_reporter
     help="The full path of the endpoint (e.g. '/v1/users/verify')",
 )
 @click.option(
+    "--http-method",
+    required=True,
+    help="The HTTP method of the endpoint (e.g. 'GET', 'POST', 'PUT', 'DELETE')",
+)
+@click.option(
     "--controller-path",
     required=True,
     help="Path to the controller file containing the endpoint handler",
@@ -32,7 +37,7 @@ from reporters import md_reporter, json_reporter, pdf_reporter
     help="Jira ticket ID (optional) to post the report",
 )
 def audit(
-    endpoint, controller_path, days, out_dir, jira
+    endpoint, http_method, controller_path, days, out_dir, jira
 ):
     """
     Audit a given endpoint to determine whether it can be deprecated.
@@ -45,6 +50,7 @@ def audit(
     # Start pipeline execution
     result = run_pipeline(
         endpoint,
+        http_method,
         controller_path,
         projects_paths,
         days,

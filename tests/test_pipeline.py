@@ -1,13 +1,14 @@
 import pytest
 from unittest.mock import patch
 from endpoint_auditor.pipline import run_pipeline
-from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage
+from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage, HttpMethod
 
 
 @pytest.fixture
 def mock_pipeline_components():
     """Fixture to mock all pipeline components for testing."""
     endpoint = "/api/v1/users"
+    http_method = HttpMethod.GET
     controller_path = "/repo/service-a/src/controllers/UserController.java"
     projects_paths = ["/repo/service-a", "/repo/service-b"]
     days = 30
@@ -15,6 +16,7 @@ def mock_pipeline_components():
     mock_endpoint_info = EndpointInfo(
         endpoint_path=endpoint,
         controller_file=controller_path,
+        http_method=http_method,
         handler_method="getUsers"
     )
 
@@ -73,6 +75,7 @@ def mock_pipeline_components():
 
         yield {
             "endpoint": endpoint,
+            "http_method": http_method,
             "controller_path": controller_path,
             "projects_paths": projects_paths,
             "days": days,
@@ -96,6 +99,7 @@ def mock_pipeline_components():
 def test_run_pipeline_success(mock_pipeline_components):
     """Test the complete pipeline execution with all components working correctly."""
     endpoint = mock_pipeline_components["endpoint"]
+    http_method = mock_pipeline_components["http_method"]
     controller_path = mock_pipeline_components["controller_path"]
     projects_paths = mock_pipeline_components["projects_paths"]
     days = mock_pipeline_components["days"]
@@ -104,6 +108,7 @@ def test_run_pipeline_success(mock_pipeline_components):
 
     result = run_pipeline(
         endpoint=endpoint,
+        http_method=http_method,
         controller_path=controller_path,
         projects_paths=projects_paths,
         days=days
@@ -111,7 +116,8 @@ def test_run_pipeline_success(mock_pipeline_components):
 
     mocks["find_endpoint"].assert_called_once_with(
         controller_path=controller_path,
-        endpoint=endpoint
+        endpoint=endpoint,
+        http_method=http_method
     )
 
     mocks["extract_log"].assert_called_once_with(
