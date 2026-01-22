@@ -24,7 +24,7 @@ def run_pipeline(
     """
     endpoint_info: EndpointInfo = find_endpoint_info(controller_path=controller_path, endpoint=endpoint, http_method=http_method)
 
-    log_extracted: LogExtraction = extract_log(controller_path=controller_path, handler_method=endpoint_info.handler_method)
+    log_extracted: LogExtraction = extract_log(endpoint_info=endpoint_info)
 
     runtime_usage: RuntimeUsage = count_log_occurrences(log_extracted=log_extracted, days=days)
 

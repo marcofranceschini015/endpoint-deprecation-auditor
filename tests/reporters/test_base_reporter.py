@@ -20,7 +20,7 @@ def mock_endpoint_info():
 def mock_log_extracted():
     """Fixture for successfully extracted log."""
     return LogExtraction(
-        log_template="User endpoint accessed: {}",
+        log_template=["User endpoint accessed"],
         extracted=True
     )
 
