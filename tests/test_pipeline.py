@@ -21,7 +21,7 @@ def mock_pipeline_components():
     )
 
     mock_log_extraction = LogExtraction(
-        log_template="User endpoint accessed: {}",
+        log_template=["User endpoint accessed"],
         extracted=True
     )
 
@@ -121,8 +121,7 @@ def test_run_pipeline_success(mock_pipeline_components):
     )
 
     mocks["extract_log"].assert_called_once_with(
-        controller_path=controller_path,
-        handler_method=expected["endpoint_info"].handler_method
+        endpoint_info=expected["endpoint_info"]
     )
 
     mocks["count_log"].assert_called_once_with(

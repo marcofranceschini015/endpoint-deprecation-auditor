@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * REST controller for payment operations with multiple endpoints.
  */
+@Log4j2
 @RestController
 @RequestMapping("/api/payment")
 class PaymentController {
@@ -23,6 +25,8 @@ class PaymentController {
      */
     @PostMapping("/confirmation")
     ResponseEntity<Void> confirmPayment(@Valid @RequestBody PaymentRequest request) {
+        LOGGER.info("Confirming payment. Transaction id: '{}'. Provider: '{}'",
+                request.paymentIdentifier(), request.paymentProvider());
         return ResponseEntity.noContent().build();
     }
 
@@ -31,6 +35,7 @@ class PaymentController {
      */
     @GetMapping("/status")
     ResponseEntity<PaymentStatus> getPaymentStatus() {
+        LOGGER.debug("Getting payment status");
         return ResponseEntity.ok().build();
     }
 
@@ -39,6 +44,7 @@ class PaymentController {
      */
     @PutMapping("/update")
     ResponseEntity<Void> updatePayment(@RequestBody PaymentUpdateRequest request) {
+        LOGGER.info("Updating payment for id: {}", request.getId());
         return ResponseEntity.ok().build();
     }
 
@@ -47,6 +53,7 @@ class PaymentController {
      */
     @DeleteMapping("/cancel")
     ResponseEntity<Void> cancelPayment() {
+        LOGGER.warn("Payment cancellation requested");
         return ResponseEntity.noContent().build();
     }
 }

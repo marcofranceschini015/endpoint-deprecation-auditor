@@ -54,7 +54,7 @@ class LogExtraction:
     :var log_template: Template extracted from the log
     :var extracted: True if it was succesfully extracted, false otherwise
     """
-    log_template: Optional[str]
+    log_template: Optional[List[str]]
     extracted: bool
 
 
