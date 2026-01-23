@@ -110,6 +110,7 @@ def test_run_pipeline_success(mock_pipeline_components):
         endpoint=endpoint,
         http_method=http_method,
         controller_path=controller_path,
+        application_name="test-service",
         projects_paths=projects_paths,
         days=days
     )
@@ -126,7 +127,8 @@ def test_run_pipeline_success(mock_pipeline_components):
 
     mocks["count_log"].assert_called_once_with(
         log_extracted=expected["log_extraction"],
-        days=days
+        days=days,
+        application_name="test-service"
     )
 
     mocks["scan_usage"].assert_called_once_with(

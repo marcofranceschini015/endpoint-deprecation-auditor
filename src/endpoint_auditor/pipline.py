@@ -6,13 +6,14 @@ from endpoint_auditor.scanners.spring_controller_scanner import find_endpoint_in
 from endpoint_auditor.scanners.usage_scanner import scan_code_usage
 from endpoint_auditor.reporters.base_reporter import generate_base_report
 from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage, HttpMethod
-from endpoint_auditor.integrations.graylog_mcp import count_log_occurrences
+from endpoint_auditor.integrations.graylog_service import count_log_occurrences
 
 
 def run_pipeline(
     endpoint: str,
     http_method: HttpMethod,
     controller_path: str,
+    application_name: str,
     projects_paths: List[str],
     days: int,
 ) -> Dict[str, Any]:
@@ -26,7 +27,7 @@ def run_pipeline(
 
     log_extracted: LogExtraction = extract_log(endpoint_info=endpoint_info)
 
-    runtime_usage: RuntimeUsage = count_log_occurrences(log_extracted=log_extracted, days=days)
+    runtime_usage: RuntimeUsage = count_log_occurrences(log_extracted=log_extracted, days=days, application_name=application_name)
 
     code_usage: CodeUsage = scan_code_usage(endpoint=endpoint, projects_paths=projects_paths)
 
