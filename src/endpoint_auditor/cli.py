@@ -1,3 +1,4 @@
+import asyncio
 import click
 
 from config import settings, is_graylog_enabled, is_jira_enabled
@@ -53,14 +54,14 @@ def audit(
     projects_paths = settings.default_projects_paths.split(",")
 
     # Start pipeline execution
-    result = run_pipeline(
+    result = asyncio.run(run_pipeline(
         endpoint=endpoint,
         http_method=http_method,
         controller_path=controller_path,
         application_name=application_name,
         projects_paths=projects_paths,
         days=days,
-    )
+    ))
 
     # Report generation
     if is_jira_enabled() and jira:

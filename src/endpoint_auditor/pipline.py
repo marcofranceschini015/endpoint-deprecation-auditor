@@ -9,7 +9,7 @@ from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, C
 from endpoint_auditor.integrations.graylog_service import count_log_occurrences
 
 
-def run_pipeline(
+async def run_pipeline(
     endpoint: str,
     http_method: HttpMethod,
     controller_path: str,
@@ -27,7 +27,7 @@ def run_pipeline(
 
     log_extracted: LogExtraction = extract_log(endpoint_info=endpoint_info)
 
-    runtime_usage: RuntimeUsage = count_log_occurrences(log_extracted=log_extracted, days=days, application_name=application_name)
+    runtime_usage: RuntimeUsage = await count_log_occurrences(log_extracted=log_extracted, days=days, application_name=application_name)
 
     code_usage: CodeUsage = scan_code_usage(endpoint=endpoint, projects_paths=projects_paths)
 

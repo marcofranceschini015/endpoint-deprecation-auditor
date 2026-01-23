@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 from endpoint_auditor.pipline import run_pipeline
 from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage, HttpMethod
 
@@ -62,7 +62,7 @@ def mock_pipeline_components():
     # Setup patches
     with patch("endpoint_auditor.pipline.find_endpoint_info") as mock_find_endpoint, \
          patch("endpoint_auditor.pipline.extract_log") as mock_extract_log, \
-         patch("endpoint_auditor.pipline.count_log_occurrences") as mock_count_log, \
+         patch("endpoint_auditor.pipline.count_log_occurrences", new_callable=AsyncMock) as mock_count_log, \
          patch("endpoint_auditor.pipline.scan_code_usage") as mock_scan_usage, \
          patch("endpoint_auditor.pipline.generate_base_report") as mock_generate_report:
 
@@ -96,7 +96,8 @@ def mock_pipeline_components():
         }
 
 
-def test_run_pipeline_success(mock_pipeline_components):
+@pytest.mark.asyncio
+async def test_run_pipeline_success(mock_pipeline_components):
     """Test the complete pipeline execution with all components working correctly."""
     endpoint = mock_pipeline_components["endpoint"]
     http_method = mock_pipeline_components["http_method"]
@@ -106,7 +107,7 @@ def test_run_pipeline_success(mock_pipeline_components):
     mocks = mock_pipeline_components["mocks"]
     expected = mock_pipeline_components["expected"]
 
-    result = run_pipeline(
+    result = await run_pipeline(
         endpoint=endpoint,
         http_method=http_method,
         controller_path=controller_path,
