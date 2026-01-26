@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
+
 from endpoint_auditor.integrations.graylog_service import count_log_occurrences, _build_query
 from endpoint_auditor.models import LogExtraction, RuntimeUsage
 
@@ -15,16 +16,20 @@ async def test_graylog_not_enabled_returns_default_runtime_usage(mock_is_enabled
         extracted=True
     )
 
-    result = await count_log_occurrences(
+    actual = await count_log_occurrences(
         log_extracted=log_extracted,
         days=7,
         application_name="test-stream"
     )
+    
+    expected = RuntimeUsage(
+        enabled=False,
+        provider=None,
+        days=7,
+        total_occurrences=None
+    )
 
-    assert result.enabled is False
-    assert result.provider is None
-    assert result.days == 7
-    assert result.total_occurrences is None
+    assert actual == expected
 
 
 @pytest.mark.asyncio
@@ -38,16 +43,20 @@ async def test_no_log_extracted_returns_default_runtime_usage(mock_is_enabled):
         extracted=False
     )
 
-    result = await count_log_occurrences(
+    actual = await count_log_occurrences(
         log_extracted=log_extracted,
         days=7,
         application_name="test-stream"
     )
 
-    assert result.enabled is False
-    assert result.provider is None
-    assert result.days == 7
-    assert result.total_occurrences is None
+    expected = RuntimeUsage(
+        enabled=False,
+        provider=None,
+        days=7,
+        total_occurrences=None
+    )
+
+    assert actual == expected
 
 
 @pytest.mark.asyncio
@@ -61,16 +70,20 @@ async def test_log_template_empty_returns_default_runtime_usage(mock_is_enabled)
         extracted=True
     )
 
-    result = await count_log_occurrences(
+    actual = await count_log_occurrences(
         log_extracted=log_extracted,
         days=7,
         application_name="test-stream"
     )
 
-    assert result.enabled is False
-    assert result.provider is None
-    assert result.days == 7
-    assert result.total_occurrences is None
+    expected = RuntimeUsage(
+        enabled=False,
+        provider=None,
+        days=7,
+        total_occurrences=None
+    )
+
+    assert actual == expected
 
 
 @pytest.mark.asyncio
@@ -89,16 +102,20 @@ async def test_client_throws_exception_returns_default_runtime_usage(mock_client
         extracted=True
     )
 
-    result = await count_log_occurrences(
+    actual = await count_log_occurrences(
         log_extracted=log_extracted,
         days=7,
         application_name="test-stream"
     )
 
-    assert result.enabled is False
-    assert result.provider is None
-    assert result.days == 7
-    assert result.total_occurrences is None
+    expected = RuntimeUsage(
+        enabled=False,
+        provider=None,
+        days=7,
+        total_occurrences=None
+    )
+
+    assert actual == expected
 
 
 @pytest.mark.asyncio
@@ -117,7 +134,7 @@ async def test_success_with_log_extracted_returns_correct_runtime_usage(mock_cli
         extracted=True
     )
 
-    result = await count_log_occurrences(
+    actual = await count_log_occurrences(
         log_extracted=log_extracted,
         days=7,
         application_name="test-stream"
@@ -130,10 +147,14 @@ async def test_success_with_log_extracted_returns_correct_runtime_usage(mock_cli
         days=7
     )
 
-    assert result.enabled is True
-    assert result.provider == "Graylog"
-    assert result.days == 7
-    assert result.total_occurrences == 42
+    expected = RuntimeUsage(
+        enabled=True,
+        provider="Graylog",
+        days=7,
+        total_occurrences=42
+    )
+
+    assert actual == expected
 
 
 def test_build_query_with_multiple_templates():
