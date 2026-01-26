@@ -1,4 +1,3 @@
-import pytest
 from pathlib import Path
 
 from endpoint_auditor.scanners.log_extractor import extract_log, _extract_constant_parts
