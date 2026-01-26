@@ -1,3 +1,4 @@
+import asyncio
 import click
 
 from config import settings, is_graylog_enabled, is_jira_enabled
@@ -22,6 +23,11 @@ from reporters import md_reporter, json_reporter, pdf_reporter
     help="Path to the controller file containing the endpoint handler",
 )
 @click.option(
+    "--application-name",
+    required=True,
+    help="Name of the application that is emitting the logs",
+)
+@click.option(
     "--days",
     default=30,
     help="Number of days to look back for runtime usage in Graylog",
@@ -37,7 +43,7 @@ from reporters import md_reporter, json_reporter, pdf_reporter
     help="Jira ticket ID (optional) to post the report",
 )
 def audit(
-    endpoint, http_method, controller_path, days, out_dir, jira
+    endpoint, http_method, controller_path, application_name, days, out_dir, jira
 ):
     """
     Audit a given endpoint to determine whether it can be deprecated.
@@ -48,13 +54,14 @@ def audit(
     projects_paths = settings.default_projects_paths.split(",")
 
     # Start pipeline execution
-    result = run_pipeline(
-        endpoint,
-        http_method,
-        controller_path,
-        projects_paths,
-        days,
-    )
+    result = asyncio.run(run_pipeline(
+        endpoint=endpoint,
+        http_method=http_method,
+        controller_path=controller_path,
+        application_name=application_name,
+        projects_paths=projects_paths,
+        days=days,
+    ))
 
     # Report generation
     if is_jira_enabled() and jira:

@@ -63,17 +63,21 @@ Run the command (Without JIRA integration)
 docker compose run --rm endpoint-auditor \
   python -m endpoint_auditor.cli \
   --endpoint "/v1/users/verify" \
+  --http-method "GET" \
   --controller-path "/app/service-a/src/main/java/.../UserController.java" \
+  --application-name "service-a" \
   --days 30 \
   --out-dir "/app/reports"
 ```
 
-Run the command (With JIRA integration) 
+Run the command (With JIRA integration)
 ```bash
 docker compose run --rm endpoint-auditor \
   python -m endpoint_auditor.cli \
   --endpoint "/v1/users/verify" \
+  --http-method "GET" \
   --controller-path "/app/service-a/src/main/java/.../UserController.java" \
+  --application-name "service-a" \
   --days 30 \
   --out-dir "/app/reports" \
   --jira "TICKET-1234"
@@ -122,9 +126,7 @@ Based on collected evidence, the tool provides a recommendation:
 
 ## Configuration
 
-Configuration is split into two parts:
-
-### Environment variables (`.env`)
+All configuration is managed through environment variables (`.env`):
 
 ```env
 # Jira
@@ -135,18 +137,14 @@ JIRA_TOKEN=your_jira_token
 # Graylog
 GRAYLOG_BASE_URL=https://graylog.example.com
 GRAYLOG_TOKEN=your_graylog_token
+GRAYLOG_MCP_BASE_URL=http://localhost:8000/mcp
 
-# Default project paths (optional)
+# Default project paths (required)
 DEFAULT_PROJECTS_PATHS=/repo/service-a,/repo/service-b
 ```
 An example configuration file is available in .env.example.
 
-### MCP Configuration(mcp.json)
-
-The project uses an mcp.json file to define external MCP servers
-(Jira and Graylog).
-Credentials and URLs are resolved from environment variables.
-If required variables are missing or invalid, the corresponding
+**Note:** If required variables are missing or invalid, the corresponding
 integration is automatically skipped.
 
 ---
@@ -156,19 +154,18 @@ integration is automatically skipped.
 ### Graylog
 
 - Runtime analysis is currently implemented **only for Graylog**
-- Integration is defined in `mcp.json`
-- Queries are executed via an **internal Graylog MCP tool**
-- Requires `GRAYLOG_BASE_URL` and `GRAYLOG_TOKEN`
+- Queries are executed via an **internal Graylog MCP client** using [fastMCP](https://gofastmcp.com/clients/client)
+- Requires `GRAYLOG_BASE_URL`, `GRAYLOG_TOKEN`, and `GRAYLOG_MCP_BASE_URL`
+- The MCP client connects directly to the Graylog MCP server
 - If configuration is missing, runtime analysis is skipped
 - **TODO:** extend support to additional log aggregation tools
   (e.g. Loki, Datadog)
 
 ### Jira
 
-- Jira integration relies on the **`mcp-atlassian` tool**
-- Executed via `uvx`
-- Configuration is defined in `mcp.json`
+- Jira integration uses direct MCP client connection
 - Requires `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_TOKEN`
+- Reports can be posted directly to Jira tickets with `--jira` flag
 - If configuration is missing, Jira update is skipped
 
 ---
