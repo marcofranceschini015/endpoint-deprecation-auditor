@@ -1,23 +1,9 @@
 from typing import Optional
 import json
 from fastmcp import Client
+from fastmcp.client.transports import StreamableHttpTransport
 
 from endpoint_auditor.config import settings
-
-
-class BearerAuth:
-    """Custom authentication for Graylog MCP requests."""
-
-    def __init__(self, token: str, graylog_base_url: str, graylog_token: str):
-        self.token = token
-        self.graylog_base_url = graylog_base_url
-        self.graylog_token = graylog_token
-
-    def __call__(self, request):
-        request.headers["Authorization"] = f"Bearer {self.token}"
-        request.headers["X-GRAYLOG-API-BASE-URL"] = self.graylog_base_url
-        request.headers["X-GRAYLOG-API-TOKEN"] = self.graylog_token
-        return request
 
 
 class GraylogMCPClient:
@@ -35,16 +21,15 @@ class GraylogMCPClient:
     def _initialize_client(self) -> None:
         """Create and configure the MCP client if Graylog is enabled."""
         try:
-            auth = BearerAuth(
-                token=settings.graylog_token,
-                graylog_base_url=settings.graylog_base_url,
-                graylog_token=settings.graylog_token
+            transport = StreamableHttpTransport(
+                url=settings.graylog_mcp_base_url,
+                headers={
+                    "Authorization": f"Bearer {settings.graylog_token}",
+                    "X-GRAYLOG-API-BASE-URL": settings.graylog_base_url,
+                    "X-GRAYLOG-API-TOKEN": settings.graylog_token,
+                },
             )
-
-            self._client = Client(
-                transport=settings.graylog_mcp_base_url,
-                auth=auth
-            )
+            self._client = Client(transport)
         except Exception as e:
             raise ValueError(f"Failed to initialize Graylog MCP client: {e}")
 
