@@ -1,9 +1,9 @@
 import asyncio
 import click
+import code
 
 from config import settings, is_graylog_enabled, is_jira_enabled
-from endpoint_auditor.pipline import run_pipeline
-from reporters import md_reporter, json_reporter, pdf_reporter
+from pipline import run_pipeline
 
 
 @click.command()
@@ -63,18 +63,20 @@ def audit(
         days=days,
     ))
 
+    code.interact(local=locals())
+
     # Report generation
     if is_jira_enabled() and jira:
         # Attach to Jira ticket
         print(f"Posting report to Jira ticket: {jira}")
         # You would call the Jira MCP tool here (mcp-atlassian)
         pass
-    else:
+    #else:
         # Generate reports locally
-        json_reporter.generate(result, out_dir)
-        md_reporter.generate(result, out_dir)
-        if is_graylog_enabled():
-            pdf_reporter.generate(result, out_dir)
+        #json_reporter.generate(result, out_dir)
+        #md_reporter.generate(result, out_dir)
+       # if is_graylog_enabled():
+       #     pdf_reporter.generate(result, out_dir)
 
     print("Audit complete.")
     print(f"Reports saved in: {out_dir}")

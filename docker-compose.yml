@@ -1,11 +1,11 @@
 services:
   endpoint-auditor:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     volumes:
-      - ..:/app
+      - .:/app
+      - ${PROJECTS_ROOT_PATH}:/app/projects
     container_name: deprecate-endpoint-auditor
     environment:
-      - PYTHONPATH=/app/src
+      - PYTHONPATH=/app/src:/app/src/endpoint_auditor
     command: ["tail", "-f", "/dev/null"]
