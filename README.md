@@ -56,7 +56,36 @@ cp .env.example .env
 # edit .env with your values
 ```
 
+### Project Structure
+
+The tool expects your projects to be organized under a single root directory on your host machine. This directory is mounted into the container at `/app/projects`.
+
+**Important:** Set `PROJECTS_ROOT_PATH` in your `.env` file to point to your local projects root directory:
+
+```env
+# Path to your local projects directory (mounted as /app/projects in the container)
+PROJECTS_ROOT_PATH=/path/to/your/projects
+
+# Project paths relative to /app/projects
+DEFAULT_PROJECTS_PATHS=service-a,service-b,frontend
+```
+
+For example, if your projects are structured like this on your host:
+```
+/Users/me/repos/
+├── service-a/
+│   └── src/main/java/...
+├── service-b/
+│   └── src/main/java/...
+└── frontend/
+    └── src/...
+```
+
+Set `PROJECTS_ROOT_PATH=/Users/me/repos` and the paths will be available inside the container under `/app/projects/`.
+
 ## Run
+
+**Note:** Both `--controller-path` and `DEFAULT_PROJECTS_PATHS` should be relative to the `/app/projects` folder inside the container.
 
 Run the command (Without JIRA integration)
 ```bash
@@ -64,7 +93,7 @@ docker compose run --rm endpoint-auditor \
   python -m endpoint_auditor.cli \
   --endpoint "/v1/users/verify" \
   --http-method "GET" \
-  --controller-path "/app/service-a/src/main/java/.../UserController.java" \
+  --controller-path "service-a/src/main/java/.../UserController.java" \
   --application-name "service-a" \
   --days 30 \
   --out-dir "/app/reports"
@@ -76,7 +105,7 @@ docker compose run --rm endpoint-auditor \
   python -m endpoint_auditor.cli \
   --endpoint "/v1/users/verify" \
   --http-method "GET" \
-  --controller-path "/app/service-a/src/main/java/.../UserController.java" \
+  --controller-path "service-a/src/main/java/.../UserController.java" \
   --application-name "service-a" \
   --days 30 \
   --out-dir "/app/reports" \
@@ -84,8 +113,10 @@ docker compose run --rm endpoint-auditor \
 ```
 
 ## Notes:
-- Project directories are taken from DEFAULT_PROJECTS_PATHS in .env
-- Reports written under /reports will be visible on your host via the volume mount
+- `PROJECTS_ROOT_PATH` defines the host directory mounted as `/app/projects` in the container
+- `DEFAULT_PROJECTS_PATHS` should contain paths relative to `/app/projects`
+- `--controller-path` should be relative to `/app/projects`
+- Reports written under `/app/reports` will be visible on your host via the volume mount
 
 ---
 
@@ -139,10 +170,14 @@ GRAYLOG_BASE_URL=https://graylog.example.com
 GRAYLOG_TOKEN=your_graylog_token
 GRAYLOG_MCP_BASE_URL=http://localhost:8000/mcp
 
-# Default project paths (required)
-DEFAULT_PROJECTS_PATHS=/repo/service-a,/repo/service-b
+# Projects configuration
+# Host path to mount as /app/projects in the container
+PROJECTS_ROOT_PATH=/path/to/your/projects
+
+# Project paths relative to /app/projects (comma-separated)
+DEFAULT_PROJECTS_PATHS=/app/projects/service-a,/app/projects/service-b
 ```
-An example configuration file is available in .env.example.
+An example configuration file is available in `.env.example`.
 
 **Note:** If required variables are missing or invalid, the corresponding
 integration is automatically skipped.
