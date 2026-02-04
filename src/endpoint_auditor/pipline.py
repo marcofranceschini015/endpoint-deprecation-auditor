@@ -13,6 +13,7 @@ async def run_pipeline(
     endpoint: str,
     http_method: HttpMethod,
     controller_path: str,
+    log: str,
     application_name: str,
     projects_paths: List[str],
     days: int,
@@ -25,7 +26,7 @@ async def run_pipeline(
     """
     endpoint_info: EndpointInfo = find_endpoint_info(controller_path=controller_path, endpoint=endpoint, http_method=http_method)
 
-    log_extracted: LogExtraction = extract_log(endpoint_info=endpoint_info)
+    log_extracted: LogExtraction = extract_log(log=log)
 
     runtime_usage: RuntimeUsage = await count_log_occurrences(log_extracted=log_extracted, days=days, application_name=application_name)
 

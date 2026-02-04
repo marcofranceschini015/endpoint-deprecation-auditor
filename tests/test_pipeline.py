@@ -12,6 +12,7 @@ def mock_pipeline_components():
     controller_path = "/repo/service-a/src/controllers/UserController.java"
     projects_paths = ["/repo/service-a", "/repo/service-b"]
     days = 30
+    log = "User endpoint accessed"
 
     mock_endpoint_info = EndpointInfo(
         endpoint_path=endpoint,
@@ -79,6 +80,7 @@ def mock_pipeline_components():
             "controller_path": controller_path,
             "projects_paths": projects_paths,
             "days": days,
+            "log": log,
             "mocks": {
                 "find_endpoint": mock_find_endpoint,
                 "extract_log": mock_extract_log,
@@ -104,6 +106,7 @@ async def test_run_pipeline_success(mock_pipeline_components):
     controller_path = mock_pipeline_components["controller_path"]
     projects_paths = mock_pipeline_components["projects_paths"]
     days = mock_pipeline_components["days"]
+    log = mock_pipeline_components["log"]
     mocks = mock_pipeline_components["mocks"]
     expected = mock_pipeline_components["expected"]
 
@@ -111,6 +114,7 @@ async def test_run_pipeline_success(mock_pipeline_components):
         endpoint=endpoint,
         http_method=http_method,
         controller_path=controller_path,
+        log=log,
         application_name="test-service",
         projects_paths=projects_paths,
         days=days
@@ -123,7 +127,7 @@ async def test_run_pipeline_success(mock_pipeline_components):
     )
 
     mocks["extract_log"].assert_called_once_with(
-        endpoint_info=expected["endpoint_info"]
+        log=log
     )
 
     mocks["count_log"].assert_called_once_with(
