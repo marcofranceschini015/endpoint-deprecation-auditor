@@ -23,6 +23,12 @@ from pipline import run_pipeline
     help="Path to the controller file containing the endpoint handler",
 )
 @click.option(
+    "--log",
+    required=True,
+    help="One log that appear when the endpoint is reached. Can be also with variables in between," \
+    "e.g. \"I am a log {}\""
+)
+@click.option(
     "--application-name",
     required=True,
     help="Name of the application that is emitting the logs",
@@ -43,7 +49,7 @@ from pipline import run_pipeline
     help="Jira ticket ID (optional) to post the report",
 )
 def audit(
-    endpoint, http_method, controller_path, application_name, days, out_dir, jira
+    endpoint, http_method, controller_path, log, application_name, days, out_dir, jira
 ):
     """
     Audit a given endpoint to determine whether it can be deprecated.
@@ -58,6 +64,7 @@ def audit(
         endpoint=endpoint,
         http_method=http_method,
         controller_path=controller_path,
+        log=log,
         application_name=application_name,
         projects_paths=projects_paths,
         days=days,
