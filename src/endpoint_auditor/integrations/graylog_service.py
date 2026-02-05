@@ -37,7 +37,8 @@ async def count_log_occurrences(
             days=days,
             total_occurrences=count
         )
-    except Exception:
+    except Exception as e:
+        print(f"{e}")
         return _create_default_runtime_usage(days=days)
 
 
@@ -65,4 +66,4 @@ def _build_query(log_template: list[str]) -> str:
         return ""
 
     quoted_strings = [f'"{template}"' for template in log_template]
-    return " AND ".join(quoted_strings)
+    return " + ".join(quoted_strings)
