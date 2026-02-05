@@ -21,7 +21,7 @@ async def test_graylog_not_enabled_returns_default_runtime_usage(mock_is_enabled
         days=7,
         application_name="test-stream"
     )
-    
+
     expected = RuntimeUsage(
         enabled=False,
         provider=None,
@@ -140,7 +140,7 @@ async def test_success_with_log_extracted_returns_correct_runtime_usage(mock_cli
         application_name="test-stream"
     )
 
-    expected_query = '"Downloading Acceptance Document" AND "for case:"'
+    expected_query = '"Downloading Acceptance Document" + "for case:"'
     mock_client.get_log_count_by_stream_name.assert_called_once_with(
         stream_name="test-stream",
         query=expected_query,
@@ -163,7 +163,7 @@ def test_build_query_with_multiple_templates():
 
     query = _build_query(log_template)
 
-    assert query == '"Downloading Acceptance Document" AND "for case:"'
+    assert query == '"Downloading Acceptance Document" + "for case:"'
 
 
 def test_build_query_with_single_template():
