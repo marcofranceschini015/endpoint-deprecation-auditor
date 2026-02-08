@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 from dataclasses import asdict
 from datetime import datetime, timezone
 
-from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage, Recommendation
+from endpoint_auditor.models import LogExtraction, RuntimeUsage, CodeUsage, Recommendation
 
 
 def _utc_now_iso() -> str:
@@ -26,7 +26,6 @@ def _generate_warnings(
 
 
 def generate_base_report(
-    endpoint_info: EndpointInfo,
     log_extracted: LogExtraction,
     runtime_usage: RuntimeUsage,
     code_usage: CodeUsage
@@ -57,7 +56,6 @@ def generate_base_report(
             "generated_at": _utc_now_iso(),
             "version": "0.1.0",
         },
-        "endpoint": asdict(endpoint_info),
         "log_extraction": asdict(log_extracted),
         "runtime_usage": asdict(runtime_usage),
         "code_usage": asdict(code_usage),
