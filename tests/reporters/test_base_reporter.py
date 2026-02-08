@@ -2,18 +2,7 @@ import pytest
 from unittest.mock import patch
 
 from endpoint_auditor.reporters.base_reporter import generate_base_report, _generate_warnings
-from endpoint_auditor.models import EndpointInfo, LogExtraction, RuntimeUsage, CodeUsage, HttpMethod
-
-
-@pytest.fixture
-def mock_endpoint_info():
-    """Fixture for mock endpoint info."""
-    return EndpointInfo(
-        endpoint_path="/api/v1/users",
-        controller_file="/repo/UserController.java",
-        http_method=HttpMethod.GET,
-        handler_method="getUsers"
-    )
+from endpoint_auditor.models import LogExtraction, RuntimeUsage, CodeUsage
 
 
 @pytest.fixture
@@ -34,7 +23,7 @@ def mock_log_not_extracted():
     )
 
 
-def test_generate_report_runtime_usage_detected(mock_endpoint_info, mock_log_extracted):
+def test_generate_report_runtime_usage_detected(mock_log_extracted):
     """Test recommendation when runtime usage is detected (line 38-42)."""
     runtime_usage = RuntimeUsage(
         enabled=True,
@@ -53,7 +42,6 @@ def test_generate_report_runtime_usage_detected(mock_endpoint_info, mock_log_ext
         mock_time.return_value = "2026-01-19T10:00:00+00:00"
 
         result = generate_base_report(
-            endpoint_info=mock_endpoint_info,
             log_extracted=mock_log_extracted,
             runtime_usage=runtime_usage,
             code_usage=code_usage
@@ -64,7 +52,7 @@ def test_generate_report_runtime_usage_detected(mock_endpoint_info, mock_log_ext
     assert result["runtime_usage"]["total_occurrences"] == 42
 
 
-def test_generate_report_still_referenced_in_code(mock_endpoint_info, mock_log_extracted):
+def test_generate_report_still_referenced_in_code(mock_log_extracted):
     """Test recommendation when code references are found (line 43-47)."""
     runtime_usage = RuntimeUsage(
         enabled=True,
@@ -83,7 +71,6 @@ def test_generate_report_still_referenced_in_code(mock_endpoint_info, mock_log_e
         mock_time.return_value = "2026-01-19T10:00:00+00:00"
 
         result = generate_base_report(
-            endpoint_info=mock_endpoint_info,
             log_extracted=mock_log_extracted,
             runtime_usage=runtime_usage,
             code_usage=code_usage
@@ -94,7 +81,7 @@ def test_generate_report_still_referenced_in_code(mock_endpoint_info, mock_log_e
     assert result["code_usage"]["matches_count"] == 5
 
 
-def test_generate_report_candidate_for_deprecation(mock_endpoint_info, mock_log_extracted):
+def test_generate_report_candidate_for_deprecation(mock_log_extracted):
     """Test recommendation when no usage is detected (line 48-52)."""
     runtime_usage = RuntimeUsage(
         enabled=True,
@@ -113,7 +100,6 @@ def test_generate_report_candidate_for_deprecation(mock_endpoint_info, mock_log_
         mock_time.return_value = "2026-01-19T10:00:00+00:00"
 
         result = generate_base_report(
-            endpoint_info=mock_endpoint_info,
             log_extracted=mock_log_extracted,
             runtime_usage=runtime_usage,
             code_usage=code_usage
@@ -125,7 +111,7 @@ def test_generate_report_candidate_for_deprecation(mock_endpoint_info, mock_log_
     assert result["code_usage"]["matches_count"] == 0
 
 
-def test_generate_report_runtime_disabled_with_code_usage(mock_endpoint_info, mock_log_extracted):
+def test_generate_report_runtime_disabled_with_code_usage(mock_log_extracted):
     """Test recommendation when runtime is disabled but code usage exists."""
     runtime_usage = RuntimeUsage(
         enabled=False,
@@ -144,7 +130,6 @@ def test_generate_report_runtime_disabled_with_code_usage(mock_endpoint_info, mo
         mock_time.return_value = "2026-01-19T10:00:00+00:00"
 
         result = generate_base_report(
-            endpoint_info=mock_endpoint_info,
             log_extracted=mock_log_extracted,
             runtime_usage=runtime_usage,
             code_usage=code_usage
@@ -154,7 +139,7 @@ def test_generate_report_runtime_disabled_with_code_usage(mock_endpoint_info, mo
     assert result["code_usage"]["matches_count"] == 3
 
 
-def test_generate_report_structure(mock_endpoint_info, mock_log_extracted):
+def test_generate_report_structure(mock_log_extracted):
     """Test that the report has the correct structure with all required fields."""
     runtime_usage = RuntimeUsage(
         enabled=True,
@@ -173,7 +158,6 @@ def test_generate_report_structure(mock_endpoint_info, mock_log_extracted):
         mock_time.return_value = "2026-01-19T10:00:00+00:00"
 
         result = generate_base_report(
-            endpoint_info=mock_endpoint_info,
             log_extracted=mock_log_extracted,
             runtime_usage=runtime_usage,
             code_usage=code_usage
@@ -182,7 +166,6 @@ def test_generate_report_structure(mock_endpoint_info, mock_log_extracted):
     assert "metadata" in result
     assert result["metadata"]["generated_at"] == "2026-01-19T10:00:00+00:00"
     assert result["metadata"]["version"] == "0.1.0"
-    assert "endpoint" in result
     assert "log_extraction" in result
     assert "runtime_usage" in result
     assert "code_usage" in result
@@ -191,7 +174,7 @@ def test_generate_report_structure(mock_endpoint_info, mock_log_extracted):
     assert result["warnings"] == []
 
 
-def test_generate_report_with_warnings(mock_endpoint_info, mock_log_not_extracted):
+def test_generate_report_with_warnings(mock_log_not_extracted):
     """Test that warnings are included in the report when issues occur."""
     runtime_usage = RuntimeUsage(
         enabled=False,
@@ -210,7 +193,6 @@ def test_generate_report_with_warnings(mock_endpoint_info, mock_log_not_extracte
         mock_time.return_value = "2026-01-19T10:00:00+00:00"
 
         result = generate_base_report(
-            endpoint_info=mock_endpoint_info,
             log_extracted=mock_log_not_extracted,
             runtime_usage=runtime_usage,
             code_usage=code_usage

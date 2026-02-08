@@ -31,22 +31,6 @@ class HttpMethod(str, Enum):
 
 
 @dataclass(frozen=True)
-class EndpointInfo:
-    """
-    Contains all information about an endpoint
-
-    :var endpoint_path: Url related to the endpoint
-    :var controller_file: Path to the rest controller
-    :var http_method: HTTP method of the endpoint
-    :var handler_method: Method that handles this endoint response
-    """
-    endpoint_path: str
-    controller_file: str
-    http_method: HttpMethod
-    handler_method: Optional[str]
-
-
-@dataclass(frozen=True)
 class LogExtraction:
     """
     Contains all information related with the extraction of a log
