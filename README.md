@@ -1,6 +1,6 @@
 # Endpoint Deprecation Auditor
 
-CLI tool to assess whether a API endpoint can be safely deprecated by correlating codebase usage and runtime log occurrence analysis.
+CLI tool to assess whether an API endpoint can be safely deprecated by correlating codebase usage and runtime log occurrence analysis.
 
 ---
 
@@ -13,7 +13,7 @@ Deprecating an API endpoint safely requires answering two key questions:
 
 This tool automates the **endpoint deprecation assessment** by combining:
 
-- Static analysis across multiple projects
+- Static analysis across multiple projects (scans `*Client*.java` files for endpoint references)
 - Runtime analysis via log aggregation tools (currently Graylog)
 
 The goal is to provide objective evidence to confidently mark an endpoint as deprecated and remove its related code.
@@ -22,26 +22,22 @@ The goal is to provide objective evidence to confidently mark an endpoint as dep
 
 ## Features
 
-- Spring REST controller analysis to locate the endpoint handler
-- Extraction of a representative log template (e.g. `"message {}"`)
+- Log template extraction from user-provided log strings (supports SLF4J `{}` and `printf`-style placeholders)
 - Runtime usage analysis via **Graylog** (occurrence count over last _N_ days)
-- Multi-project codebase scan for endpoint path usage
-- Report generation:
-  - JSON
-  - Markdown
-  - PDF
-- Optional Jira ticket update with assessment results
+- Multi-project codebase scan for endpoint path usage in Java client files
+- Automated deprecation recommendation based on collected evidence
+- Post assessment report directly to a **Jira** ticket as a formatted comment
 
 ---
 
 ## High-Level Workflow
 
-1. Provide an **endpoint path** (path-only, e.g. `/v1/users/verify`)
-2. Locate the corresponding Spring controller method
-3. Extract a representative log message template
-4. Query Graylog for log occurrences in the last _X_ days
-5. Scan specified project directories for endpoint usage
-6. Generate a deprecation assessment report or attach it to a Jira ticket
+1. Provide an **endpoint path** (e.g. `/v1/users/verify`), the **HTTP method**, and a **representative log message**
+2. Extract constant parts from the log template (removing placeholders)
+3. Query Graylog for log occurrences in the last _N_ days
+4. Scan specified project directories for endpoint usage in `*Client*.java` files
+5. Generate a deprecation assessment report with an automated recommendation
+6. Optionally post the report as a comment on a Jira ticket
 
 ---
 
@@ -67,7 +63,7 @@ The tool expects your projects to be organized under a single root directory on 
 PROJECTS_ROOT_PATH=/path/to/your/projects
 
 # Project paths relative to /app/projects
-DEFAULT_PROJECTS_PATHS=service-a,service-b,frontend
+DEFAULT_PROJECTS_PATHS=/app/projects/service-a,/app/projects/service-b,/app/projects/frontend
 ```
 
 For example, if your projects are structured like this on your host:
@@ -85,38 +81,45 @@ Set `PROJECTS_ROOT_PATH=/Users/me/repos` and the paths will be available inside 
 
 ## Run
 
-**Note:** Both `--controller-path` and `DEFAULT_PROJECTS_PATHS` should be relative to the `/app/projects` folder inside the container.
-
-Run the command (Without JIRA integration)
+Run the audit (without Jira):
 ```bash
 docker compose run --rm endpoint-auditor \
   python -m endpoint_auditor.cli \
   --endpoint "/v1/users/verify" \
   --http-method "GET" \
-  --controller-path "service-a/src/main/java/.../UserController.java" \
+  --log "Verifying user identity for case: '{}'" \
   --application-name "service-a" \
-  --days 30 \
-  --out-dir "/app/reports"
+  --days 30
 ```
 
-Run the command (With JIRA integration)
+Run the audit and post the report to a Jira ticket:
 ```bash
 docker compose run --rm endpoint-auditor \
   python -m endpoint_auditor.cli \
   --endpoint "/v1/users/verify" \
   --http-method "GET" \
-  --controller-path "service-a/src/main/java/.../UserController.java" \
+  --log "Verifying user identity for case: '{}'" \
   --application-name "service-a" \
   --days 30 \
-  --out-dir "/app/reports" \
   --jira "TICKET-1234"
 ```
 
-## Notes:
+### CLI Options
+
+| Option               | Required | Default | Description                                                     |
+|----------------------|----------|---------|-----------------------------------------------------------------|
+| `--endpoint`         | Yes      |         | Full path of the endpoint (e.g. `/v1/users/verify`)             |
+| `--http-method`      | Yes      |         | HTTP method (`GET`, `POST`, `PUT`, `DELETE`, etc.)              |
+| `--log`              | Yes      |         | Representative log emitted when the endpoint is reached. May contain placeholders (e.g. `"Verifying user {}"`) |
+| `--application-name` | Yes      |         | Name of the application / Graylog stream emitting the logs      |
+| `--days`             | No       | `30`    | Number of days to look back for runtime usage in Graylog        |
+| `--jira`             | No       |         | Jira issue key (e.g. `TICKET-1234`) to post the report to       |
+
+### Notes
 - `PROJECTS_ROOT_PATH` defines the host directory mounted as `/app/projects` in the container
 - `DEFAULT_PROJECTS_PATHS` should contain paths relative to `/app/projects`
-- `--controller-path` should be relative to `/app/projects`
-- Reports written under `/app/reports` will be visible on your host via the volume mount
+- The `--log` argument supports SLF4J placeholders (`{}`) and printf-style placeholders (`%s`, `%d`, etc.)
+- If `--jira` is omitted, the report is generated but not posted anywhere
 
 ---
 
@@ -124,34 +127,29 @@ docker compose run --rm endpoint-auditor \
 
 Each generated report contains the following information:
 
-### Endpoint Information
-- Endpoint path
-- Controller file path
-- Handler method name
-
 ### Log Extraction
-- Extracted log template (e.g. `"calling endpoint {}"`)
-- Fallback strategy used (if no log template is found)
+- Extracted log template (constant parts only, e.g. `"Verifying user identity for case:"`)
+- Extraction status (success/failure)
 
 ### Runtime Usage (Graylog)
+- Provider name
 - Time range analyzed (last _N_ days)
-- Query used for log search
 - Total number of occurrences
 
 ### Code Usage Analysis
+- Projects scanned
 - Number of matches found
-- List of files referencing the endpoint path
+- List of `*Client*.java` files referencing the endpoint path
 
 ### Automated Recommendation
 Based on collected evidence, the tool provides a recommendation:
-- **Candidate for deprecation** (no runtime usage, no code references)
-- **Still referenced in code**
-- **Runtime usage detected**
+- **Candidate for deprecation** — no runtime usage, no code references
+- **Still referenced in code** — static references found in scanned codebases
+- **Runtime usage detected** — log occurrences found in the specified time range
 
 ### Warnings
-- Missing log templates
-- Fallback strategies applied
-- Partial or inconclusive analysis
+- Log template extraction failures
+- Runtime analysis skipped (provider not enabled or not reachable)
 
 ---
 
@@ -163,12 +161,12 @@ All configuration is managed through environment variables (`.env`):
 # Jira
 JIRA_BASE_URL=https://jira.example.com
 JIRA_EMAIL=your.email@company.com
-JIRA_TOKEN=your_jira_token
+JIRA_TOKEN=your_jira_api_token
 
 # Graylog
+GRAYLOG_MCP_BASE_URL=https://graylog.example.com/mcp/
 GRAYLOG_BASE_URL=https://graylog.example.com
-GRAYLOG_TOKEN=your_graylog_token
-GRAYLOG_MCP_BASE_URL=http://localhost:8000/mcp
+GRAYLOG_TOKEN=your_graylog_api_token
 
 # Projects configuration
 # Host path to mount as /app/projects in the container
@@ -189,19 +187,18 @@ integration is automatically skipped.
 ### Graylog
 
 - Runtime analysis is currently implemented **only for Graylog**
-- Queries are executed via an **internal Graylog MCP client** using [fastMCP](https://gofastmcp.com/clients/client)
+- Queries are executed via an **internal Graylog MCP client** using [FastMCP](https://gofastmcp.com/clients/client)
 - Requires `GRAYLOG_BASE_URL`, `GRAYLOG_TOKEN`, and `GRAYLOG_MCP_BASE_URL`
-- The MCP client connects directly to the Graylog MCP server
+- The MCP client connects to the Graylog MCP server via HTTP transport
 - If configuration is missing, runtime analysis is skipped
-- **TODO:** extend support to additional log aggregation tools
-  (e.g. Loki, Datadog)
 
 ### Jira
 
-- Jira integration uses direct MCP client connection
+- Jira integration uses [atlassian-python-api](https://github.com/atlassian-api/atlassian-python-api) to communicate with the Jira REST API
 - Requires `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_TOKEN`
-- Reports can be posted directly to Jira tickets with `--jira` flag
-- If configuration is missing, Jira update is skipped
+- When `--jira` is provided, the report is formatted in Jira wiki markup and posted as a comment on the specified issue
+- The comment includes the recommendation, runtime usage table, code usage details, log template, warnings, and metadata
+- If configuration is missing, Jira posting is skipped
 
 ---
 
@@ -210,17 +207,17 @@ integration is automatically skipped.
 - Logs emitted only in deeper service layers may not be detected
 - Dynamically built endpoints may evade static scanning
 - Runtime analysis depends on log retention and indexing policies
-- Currently supports **Graylog only**
+- Currently supports **Graylog only** for runtime analysis
+- Code scan targets `*Client*.java` files only
 - External integrations are skipped if configuration is missing
 
 ---
 
 ## Roadmap
 
-- Support for additional log aggregation tools
+- Support for additional log aggregation tools (e.g. Loki, Datadog)
 - AST-based Spring controller parsing
 - OpenAPI / Swagger integration
-- CI-friendly “fail if endpoint is still used” mode
+- CI-friendly "fail if endpoint is still used" mode
 - Improved confidence scoring
-
-
+- Local report generation (JSON, Markdown, PDF)

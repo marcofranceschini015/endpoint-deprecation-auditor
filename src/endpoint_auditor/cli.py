@@ -34,17 +34,12 @@ from integrations.jira_service import post_report_to_jira
     help="Number of days to look back for runtime usage in Graylog",
 )
 @click.option(
-    "--out-dir",
-    default="./reports",
-    help="Directory to save the generated reports",
-)
-@click.option(
     "--jira",
     default=None,
     help="Jira ticket ID (optional) to post the report",
 )
 def audit(
-    endpoint, http_method, log, application_name, days, out_dir, jira
+    endpoint, http_method, log, application_name, days, jira
 ):
     """
     Audit a given endpoint to determine whether it can be deprecated.
